@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Scandiweb\Test\Setup\Patch\Data;
 
 use Magento\Catalog\Api\CategoryLinkManagementInterface;
@@ -21,18 +23,71 @@ use Magento\InventoryApi\Api\Data\SourceItemInterface;
 
 class CreateGripTrainerProduct implements DataPatchInterface
 {
+    /**
+     * @var ModuleDataSetupInterface
+     */
     protected ModuleDataSetupInterface $setup;
+
+    /**
+     * @var ProductInterfaceFactory
+     */
     protected ProductInterfaceFactory $productInterfaceFactory;
+
+    /**
+     * @var ProductRepositoryInterface
+     */
     protected ProductRepositoryInterface $productRepository;
+
+    /**
+     * @var State
+     */
     protected State $appState;
+
+    /**
+     * @var EavSetup
+     */
     protected EavSetup $eavSetup;
+
+    /**
+     * @var StoreManagerInterface
+     */
     protected StoreManagerInterface $storeManager;
+
+    /**
+     * @var SourceItemInterfaceFactory
+     */
     protected SourceItemInterfaceFactory $sourceItemFactory;
+
+    /**
+     * @var SourceItemsSaveInterface
+     */
     protected SourceItemsSaveInterface $sourceItemsSaveInterface;
+
+    /**
+     * @var CategoryLinkManagementInterface
+     */
     protected CategoryLinkManagementInterface $categoryLink;
 
+    /**
+     * @var sourceItems
+     */
+    protected array $sourceItems = [];
+
+    /**
+     * CreateGripTrainerProduct constructor.
+     *
+     * @param ModuleDataSetupInterface $setup
+     * @param ProductInterfaceFactory $productInterfaceFactory
+     * @param ProductRepositoryInterface $productRepository
+     * @param State $appState
+     * @param StoreManagerInterface $storeManager
+     * @param EavSetup $eavSetup
+     * @param SourceItemInterfaceFactory $sourceItemFactory
+     * @param SourceItemsSaveInterface $sourceItemsSaveInterface
+     * @param CategoryLinkManagementInterface $categoryLink
+     * @return void
+     */
     public function __construct(
-        ModuleDataSetupInterface $setup,
         ProductInterfaceFactory $productInterfaceFactory,
         ProductRepositoryInterface $productRepository,
         State $appState,
@@ -42,25 +97,34 @@ class CreateGripTrainerProduct implements DataPatchInterface
         SourceItemsSaveInterface $sourceItemsSaveInterface,
         CategoryLinkManagementInterface $categoryLink
     ) {
-        $this->appState = $appState;
         $this->productInterfaceFactory = $productInterfaceFactory;
         $this->productRepository = $productRepository;
-        $this->setup = $setup;
-        $this->eavSetup = $eavSetup;
+        $this->appState = $appState;
         $this->storeManager = $storeManager;
+        $this->eavSetup = $eavSetup;
         $this->sourceItemFactory = $sourceItemFactory;
         $this->sourceItemsSaveInterface = $sourceItemsSaveInterface;
         $this->categoryLink = $categoryLink;
     }
 
-    public function apply()
+    /**
+     * Apply the patch
+     *
+     * @return void
+     */
+    public function apply(): void
     {
         $this->setup->startSetup();
         $this->appState->emulateAreaCode(Area::AREA_ADMINHTML, [$this, 'execute']);
         $this->setup->endSetup();
     }
 
-    public function execute()
+    /**
+     * Execute the patch
+     *
+     * @return void
+     */
+    public function execute(): void
     {
         // Create the product
         $product = $this->productInterfaceFactory->create();
@@ -76,43 +140,48 @@ class CreateGripTrainerProduct implements DataPatchInterface
         $product->setTypeId(Type::TYPE_SIMPLE)
             ->setAttributeSetId($attributeSetId)
             ->setName('Grip Trainer')
-            ->setSku('#123')
+            ->setSku('grip-trainer')
             ->setUrlKey('griptrainer')
             ->setPrice(3.33)
             ->setVisibility(Visibility::VISIBILITY_BOTH)
             ->setStatus(Status::STATUS_ENABLED);
 
-        // Save the product to the repository
+
         $product = $this->productRepository->save($product);
 
-
-        // Assign the product to the categories
         $this->categoryLink->assignProductToCategories($product->getSku(), [11]);
 
-
-        // Initialize the sourceItems array
-        $sourceItems = [];
-
         $sourceItem = $this->sourceItemFactory->create();
-        $sourceItem->setSourceCode('default');
-        // Set the quantity of items in stock
-        $sourceItem->setQuantity(100);
-        // Add the product's SKU that will be linked to this source item
-        $sourceItem->setSku($product->getSku());
-        // Set the stock status
-        $sourceItem->setStatus(SourceItemInterface::STATUS_IN_STOCK);
-        $sourceItems[] = $sourceItem;
 
-        // Save the source items
-        $this->sourceItemsSaveInterface->execute($sourceItems);
+        $sourceItem->setSourceCode('default');
+
+        $sourceItem->setQuantity(100);
+
+        $sourceItem->setSku($product->getSku());
+
+        $sourceItem->setStatus(SourceItemInterface::STATUS_IN_STOCK);
+
+        $this->sourceItems[] = $sourceItem;
+
+        $this->sourceItemsSaveInterface->execute($this->sourceItems);
     }
 
-    public static function getDependencies()
+    /**
+     * Get dependencies for the patch (if any)
+     *
+     * @return string[]
+     */
+    public static function getDependencies(): array
     {
         return [];
     }
 
-    public function getAliases()
+    /**
+     * Get aliases for the patch (if any)
+     *
+     * @return string[]
+     */
+    public function getAliases(): array
     {
         return [];
     }
