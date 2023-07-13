@@ -24,11 +24,6 @@ use Magento\InventoryApi\Api\Data\SourceItemInterface;
 class CreateGripTrainerProduct implements DataPatchInterface
 {
     /**
-     * @var ModuleDataSetupInterface
-     */
-    protected ModuleDataSetupInterface $setup;
-
-    /**
      * @var ProductInterfaceFactory
      */
     protected ProductInterfaceFactory $productInterfaceFactory;
@@ -76,7 +71,6 @@ class CreateGripTrainerProduct implements DataPatchInterface
     /**
      * CreateGripTrainerProduct constructor.
      *
-     * @param ModuleDataSetupInterface $setup
      * @param ProductInterfaceFactory $productInterfaceFactory
      * @param ProductRepositoryInterface $productRepository
      * @param State $appState
