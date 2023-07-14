@@ -108,9 +108,7 @@ class CreateGripTrainerProduct implements DataPatchInterface
      */
     public function apply(): void
     {
-        $this->setup->startSetup();
         $this->appState->emulateAreaCode(Area::AREA_ADMINHTML, [$this, 'execute']);
-        $this->setup->endSetup();
     }
 
     /**
@@ -139,24 +137,17 @@ class CreateGripTrainerProduct implements DataPatchInterface
             ->setPrice(3.33)
             ->setVisibility(Visibility::VISIBILITY_BOTH)
             ->setStatus(Status::STATUS_ENABLED);
-
-
+        
         $product = $this->productRepository->save($product);
 
         $this->categoryLink->assignProductToCategories($product->getSku(), [11]);
 
         $sourceItem = $this->sourceItemFactory->create();
-
         $sourceItem->setSourceCode('default');
-
         $sourceItem->setQuantity(100);
-
         $sourceItem->setSku($product->getSku());
-
         $sourceItem->setStatus(SourceItemInterface::STATUS_IN_STOCK);
-
         $this->sourceItems[] = $sourceItem;
-
         $this->sourceItemsSaveInterface->execute($this->sourceItems);
     }
 
